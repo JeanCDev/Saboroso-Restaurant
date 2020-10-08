@@ -2,6 +2,7 @@ let db = require('./bd');
 
 module.exports = {
 
+// pega os pratos do banco de dados
  getMenus(){
     return new Promise((resolve, reject) => {
 
