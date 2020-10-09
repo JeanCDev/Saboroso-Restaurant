@@ -3,6 +3,10 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var path = require('path');
+
+// formidable para tratar formulários
+var formidable = require('formidable');
 
 // import do redis 
 var redis = require('redis');
@@ -13,6 +17,35 @@ var indexRouter = require('./routes/index');
 var adminRouter = require('./routes/admin');
 
 var app = express();
+
+// usar o formidable no app 
+app.use(function(req, res, next){
+
+  if(req.method === 'POST'){
+
+    var form = formidable.IncomingForm({
+      uploadDir: path.join(__dirname, '/public/images'), 
+      keepExtension: true
+    });
+  
+    form.parse(req, function(err, fields, files){
+
+      req.body = fields;
+  
+      req.fields = fields;
+      req.files = files;
+  
+      next();
+  
+    });
+
+  } else {
+
+    next();
+
+  }
+
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -37,7 +70,7 @@ app.use(session({
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 

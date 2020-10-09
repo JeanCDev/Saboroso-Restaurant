@@ -1,6 +1,7 @@
 var express = require('express');
 var users = require('./../inc/users');
 var admin = require('./../inc/admin');
+var menus = require('./../inc/menus');
 var router = express.Router();
 
 // Middleware para verificar se o usuário está logado.
@@ -97,7 +98,41 @@ router.get('/emails', function (req, res, next) {
 // rota dos menus do painel de admin
 router.get('/menus', function (req, res, next) {
 
-  res.render('admin/menus', admin.getParams(req));
+  menus.getMenus().then(data =>{
+
+    res.render('admin/menus', admin.getParams(req,{
+      data
+    }));
+
+  });
+
+});
+
+// rota do envio de formulários da rota de menus
+router.post('/menus', function (req, res, next){
+  menus.save(req.fields, req.files).then(result =>{
+
+    res.send(result);
+
+  }).catch(error =>{
+
+    res.send(error);
+
+  });
+  
+});
+
+router.delete('/menus/:id', function(req, res, next){
+
+  menus.delete(req.params.id).then(result =>{
+
+    res.send(result);
+
+  }).catch(err =>{
+
+    res.send(err);
+
+  });
 
 });
 
