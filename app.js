@@ -3,6 +3,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var http = require('http');
+var socket = require('socket.io');
 var path = require('path');
 
 // formidable para tratar formulários
@@ -13,13 +15,27 @@ var redis = require('redis');
 var session = require('express-session');
 var RedisStore = require('connect-redis')(session);
 
-var indexRouter = require('./routes/index');
-var adminRouter = require('./routes/admin');
-
 var app = express();
+
+var http = http.Server(app);
+var io = socket(http);
+
+io.on('connection', function(socket){
+
+  io.emit('dashboard update', { 
+    date: new Date(),
+  });
+
+});
+
+// chamada das rotas após o io para que el funcione
+var indexRouter = require('./routes/index')(io);
+var adminRouter = require('./routes/admin')(io);
 
 // usar o formidable no app 
 app.use(function(req, res, next){
+
+  req.body = {};
 
   if(req.method === 'POST'){
 
@@ -69,7 +85,7 @@ app.use(session({
 }));
 
 app.use(logger('dev'));
-app.use(express.json());
+//app.use(express.json());
 // app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -93,4 +109,8 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-module.exports = app;
+http.listen(3000, () =>{
+  console.log('Servidor Rodando');
+})
+
+//module.exports = app;

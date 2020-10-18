@@ -1,25 +1,23 @@
 let db = require('./bd');
+let Pagination = require('./pagination');
 let path = require('path');
 
 module.exports = {
 
 // pega os pratos do banco de dados
- getMenus(){
-    return new Promise((resolve, reject) => {
+ getMenus(page){
 
-        db.query(`
-          SELECT * FROM tb_menus ORDER BY title
-          `, (err, results)=>{
+        if(!page) page = 1;
 
-              if (err) { reject(err);} 
-              
-              resolve(results);
+        let pagination = new Pagination(
+          `
+            SELECT SQL_CALC_FOUND_ROWS * FROM tb_menus ORDER BY title LIMIT ?, ?
+          `
+        );
 
-          });
+        return pagination.getPage(page);
 
-        });
-
-      },
+    },
   
   // salvar uma nova linha no banco de dados
   save(fields, files) {

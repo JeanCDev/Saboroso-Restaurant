@@ -31,8 +31,8 @@ class Grid {
     this.options = Object.assign({}, {
       formCreate: '#modal-create form',
       formUpdate: '#modal-update form',
-      btnUpdate: '.btn-update',
-      btnDelete: '.btn-delete',
+      btnUpdate: 'btn-update',
+      btnDelete: 'btn-delete',
       onUpdateLoad:(form, name, data) => {
 
         let input = form.querySelector(`[name=${name}]`);
@@ -41,6 +41,8 @@ class Grid {
       }
     }
     , configs);
+
+    this.rows = [...document.querySelectorAll('table tbody tr')]
 
     this.initForms();
     this.initButtons();
@@ -53,28 +55,42 @@ class Grid {
     // salva um formulário usando o prototype
     this.formCreate = document.querySelector(this.options.formCreate);
 
-    this.formCreate.save().then(json => {
+    if(this.formCreate){
 
-      this.fireEvent('afterFormCreate');
+      this.formCreate.save({
+        success: () => {
+  
+          this.fireEvent('afterFormCreate');
+  
+        },
+        failure: err => {
+  
+          this.fireEvent('afterFormCreateError');
+  
+        }
+      });
 
-    }).catch(error => {
-
-      this.fireEvent('afterFormCreateError');
-      
-    });
+    }
 
     // salva um formulário usando o prototype
     this.formUpdate = document.querySelector(this.options.formUpdate);
 
-    this.formUpdate.save().then(json => {
+    if(this.formUpdate){
 
-      this.fireEvent('afterFormUpdate');
+      this.formUpdate.save({
+        success: () => {
+  
+          this.fireEvent('afterFormUpdate');
+  
+        },
+        failure: err => {
+  
+          this.fireEvent('afterFormUpdateError');
+  
+        }
+      });
 
-    }).catch(error => {
-
-      console.log(error)
-      
-    });
+    }
 
   }
 
@@ -102,13 +118,9 @@ class Grid {
 
   }
 
-  // inicia os botões de update e delete
-  initButtons() {
-
-    // cria um array de botões pegando os dados para edição de itens do banco de dados
-    [...document.querySelectorAll(this.options.btnUpdate)].forEach(btn => {
-
-      btn.addEventListener('click', e => {
+  // eventos de atualização de usuário
+  // cria um array de botões pegando os dados para edição de itens do banco de dados
+  btnUpdateClick(e){
 
         // dispara qualquer evento
         // this.fireEvent('beforeUpdateClick');
@@ -123,15 +135,12 @@ class Grid {
         }
 
         // dispara o evento de abrir o modal
-        this.fireEvent('afterUpdateClick');
+        this.fireEvent('afterUpdateClick', [e]);
 
-      });
+  }
 
-    });
-
-    [...document.querySelectorAll(this.options.btnDelete)].forEach(btn => {
-
-      btn.addEventListener('click', e => {
+  // evento de exclusão usuário
+  btnDeleteClick(e){
 
         this.fireEvent('beforeDeleteClick');
 
@@ -151,6 +160,37 @@ class Grid {
             });
 
         }
+
+  }
+
+  // inicia os botões de forma inteligente
+  initButtons() {
+
+    this.rows.forEach(row => {
+
+      [...row.querySelectorAll('.btn')].forEach(btn=>{
+
+        btn.addEventListener('click', e =>{
+
+          if(e.target.classList.contains(this.options.btnUpdate)){
+
+            this.btnUpdateClick(e);
+
+          } else if(e.target.classList.contains(this.options.btnDelete)){
+
+            this.btnDeleteClick(e);
+
+          } else {
+
+            this.fireEvent('buttonClick', [
+              e.target,
+              this.getTrData(e),
+              e
+            ]);
+
+          }
+
+        });
 
       });
 
