@@ -1,4 +1,5 @@
-var db = require('./bd')
+var db = require('./bd');
+var Pagination = require('./pagination');
 
 module.exports = {
 
@@ -15,6 +16,20 @@ module.exports = {
     });
 
   }, 
+
+  getContacts(page){
+
+      if(!page) page = 1;
+
+          let pagination = new Pagination(
+            `
+              SELECT SQL_CALC_FOUND_ROWS * FROM tb_contacts ORDER BY register DESC LIMIT ?, ?
+            `
+      );
+
+      return pagination.getPage(page);
+
+  },
 
   // salva mensagem no banco de dados
   save(fields){
@@ -37,6 +52,24 @@ module.exports = {
         );
 
       });
+
+  },
+
+  delete(id){
+
+    return new Promise((resolve, reject) => {
+
+      db.query(`DELETE FROM tb_contacts WHERE id = ?`, [id], (err, results) => {
+
+        if(err){
+          reject(err);
+        } else {
+          resolve(results);
+        }
+
+      });
+
+    });
 
   }
 

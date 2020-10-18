@@ -1,4 +1,5 @@
 var db = require('./bd');
+var Pagination = require('./pagination');
 
 module.exports = {
 
@@ -53,20 +54,17 @@ module.exports = {
   },
     
 // pega os usuários do banco de dados
- getUsers(){
-  return new Promise((resolve, reject) => {
+ getUsers(page){
 
-      db.query(`
-        SELECT * FROM tb_users ORDER BY name
-        `, (err, results)=>{
+      if(!page) page = 1;
 
-            if (err) { reject(err);} 
-            
-            resolve(results);
+      let pagination = new Pagination(
+        `
+          SELECT SQL_CALC_FOUND_ROWS * FROM tb_users ORDER BY name LIMIT ?, ?
+        `
+      );
 
-        });
-
-      });
+      return pagination.getPage(page);
 
     },
 
@@ -96,7 +94,7 @@ module.exports = {
       } else {
 
         query = `
-          INSERT INTO tb_menus (name, email, password)
+          INSERT INTO tb_users (name, email, password)
           VALUES(?, ?, ?)
         `;
 
@@ -107,6 +105,7 @@ module.exports = {
       db.query(query, params, (err, results)=>{
 
         if(err){ 
+          console.log(err)
           reject(err);
         } else {
           resolve(results);
@@ -126,12 +125,51 @@ module.exports = {
       db.query(`DELETE FROM tb_users WHERE id = ?`, [id], (err, results) => {
 
         if(err){
+          console.log(err)
           reject(err);
         } else {
           resolve(results);
         }
 
       });
+
+    });
+
+  },
+
+  // Altera senha do usuário no banco de dados
+  changePassword(req){
+
+    return new Promise((resolve, reject) => {
+
+      if(!req.fields.password){
+
+        reject('Preencha a senha');
+
+      } else if(req.fields.password !== req.fields.passwordConfirm){
+
+        reject('Preencha a senha corretamente');
+
+      } else{
+
+        db.query(`
+          UPDATE tb_users 
+            SET password = ?
+          WHERE id = ?
+        `, [
+          req.fields.password,
+          req.fields.id,
+        ],function(err, results){
+
+          if(err){
+            reject(err.message);
+          } else {
+            resolve(results);
+          }
+
+        });
+
+      }
 
     });
 
