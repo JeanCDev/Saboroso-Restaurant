@@ -2,6 +2,11 @@ var express = require('express');
 var users = require('./../inc/users');
 var admin = require('./../inc/admin');
 var menus = require('./../inc/menus');
+var reservations = require('./../inc/reservation');
+
+var moment = require('moment');
+moment.locale("pt-BR");
+
 var router = express.Router();
 
 // Middleware para verificar se o usuário está logado.
@@ -122,6 +127,7 @@ router.post('/menus', function (req, res, next){
   
 });
 
+// rota para excluir itens do menu
 router.delete('/menus/:id', function(req, res, next){
 
   menus.delete(req.params.id).then(result =>{
@@ -139,16 +145,86 @@ router.delete('/menus/:id', function(req, res, next){
 // rota das reservas do painel de admin
 router.get('/reservations', function (req, res, next) {
 
-  res.render('admin/reservations', admin.getParams(req, {
-    date: {}
-  }));
+  reservations.getReservations().then(data =>{
+
+    res.render('admin/reservations', admin.getParams(req, {
+      date: {},
+      data, 
+      moment
+    }));
+
+  });
+
+});
+
+// rota do envio de formulários da rota de reservas
+router.post('/reservations', function (req, res, next){
+  reservations.save(req.fields).then(result =>{
+
+    res.send(result);
+
+  }).catch(error =>{
+
+    res.send(error);
+
+  });
+  
+});
+
+// rota para excluir reservas
+router.delete('/reservations/:id', function(req, res, next){
+
+  reservations.delete(req.params.id).then(result =>{
+
+    res.send(result);
+
+  }).catch(err =>{
+
+    res.send(err);
+
+  });
 
 });
 
 // rota dos usuários cadastrados no painel de admin
 router.get('/users', function (req, res, next) {
 
-  res.render('admin/users', admin.getParams(req));
+  users.getUsers().then(data =>{
+
+    res.render('admin/users', admin.getParams(req,{
+      data
+    }));
+
+  });
+
+});
+
+// rota do envio de formulários da rota de usuários
+router.post('/users', function (req, res, next){
+  users.save(req.fields).then(result =>{
+
+    res.send(result);
+
+  }).catch(error =>{
+
+    res.send(error);
+
+  });
+  
+});
+
+// rota para excluir usuários
+router.delete('/users/:id', function(req, res, next){
+
+  users.delete(req.params.id).then(result =>{
+
+    res.send(result);
+
+  }).catch(err =>{
+
+    res.send(err);
+
+  });
 
 });
 
