@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start-io":"nodemon app.js",
-    "start": "nodemon ./bin/www"
+    "start": "node ./bin/www"
   },
   "dependencies": {
     "connect-redis": "^5.0.0",
